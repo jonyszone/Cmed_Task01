@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -29,8 +30,33 @@ import java.util.concurrent.Executors
 object FileDownloader {
     private val executor: Executor = Executors.newSingleThreadExecutor()
 
+    private val channelId = "download_channel"
+    private val channelName = "Downloads"
     fun downloadFile(context: Context, url: String, filename: String, progressBar: ProgressBar) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            createNotificationChannel(context)
+        }
+
         executor.execute(DownloadFileTask(context, url, filename, progressBar))
+    }
+
+    private fun createNotificationChannel(context: Context) {
+        // Create a notification channel only if the Android version is greater than or equal to Android Oreo (API level 26).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            channel.description = "Download notifications"
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private class DownloadFileTask(
@@ -60,6 +86,7 @@ object FileDownloader {
                 override fun onReceive(context: Context, intent: Intent) {
                     if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == intent.action) {
                         // showDownloadNotification(context, channelId, filename)
+                        removeNotification(downloadId);
                     }
                 }
             }
@@ -127,6 +154,12 @@ object FileDownloader {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
+
+        private fun removeNotification(downloadId: Long) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(downloadId.toInt())
+        }
+
     }
 
 }
