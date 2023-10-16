@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         downloadButton.setOnClickListener {
             try {
-                FileDownloader.downloadFile(this, downloadUrl, "mp4",  downloadProgressBar)
+                FileDownloader.downloadFile(this, downloadUrl, fileName,  downloadProgressBar)
             } catch (e: Exception) {
                 println("Exception downloading: $e")
             }
