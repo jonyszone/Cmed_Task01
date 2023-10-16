@@ -16,6 +16,10 @@ object FileDownloader {
     // for downloading a tasks
     private val executor: Executor = Executors.newSingleThreadExecutor()
 
+    fun downloadFile(context: Context, url: String?, filename: String?, progressBar: ProgressBar) {
+        executor.execute(DownloadFileTask(context, url, filename, progressBar))
+    }
+
     private class DownloadFileTask internal constructor(
         private val context: Context,
         private val url: String?,
@@ -64,9 +68,6 @@ object FileDownloader {
             }
         }
 
-        fun downloadFile(context: Context, url: String?, filename: String?, progressBar: ProgressBar) {
-            executor.execute(DownloadFileTask(context, url, filename, progressBar))
-        }
 
         private fun updateProgress(progress: Int) {
             Handler(Looper.getMainLooper()).post { progressBar.progress = progress }
